@@ -1,18 +1,6 @@
 #!/bin/bash
-# winpe,     https://msdn.microsoft.com/en-us/windows/hardware/dn913721.aspx
-# ubuntu,    http://releases.ubuntu.com/
-#            https://help.ubuntu.com/community/Installation/MinimalCD
-# nonpae,    ftp://ftp.heise.de/pub/ct/projekte/ubuntu-nonpae/ubuntu-12.04.4-nonpae.iso
-# debian,    http://cdimage.debian.org/debian-cd/
-# bankix,    http://www.heise.de/ct/projekte/Sicheres-Online-Banking-mit-Bankix-284099.html
-# deft,      http://www.deftlinux.net/
-# gnuradio,  http://gnuradio.org/redmine/projects/gnuradio/wiki/GNURadioLiveDVD/
-# kali,      http://www.kali.org/kali-linux-releases/
-# pentoo,    http://www.pentoo.ch/download/
-# sysrescue, http://sourceforge.net/projects/systemrescuecd/ (http://www.sysresccd.org/Download/)
-#
 # v2016-07-22
-
+#(Made it only download a single image - http://www.ultimatebootcd.com/ )
 ######################################################################
 echo -e "\e[32msetup variables\e[0m";
 NFS=/nfs
@@ -35,37 +23,10 @@ IP_ROUTER=$(grep "nameserver" /etc/resolv.conf | sed -r "s/nameserver([ ]{1,})//
 IP_SUB=255.255.255.0
 
 ######################################################################
-WIN_PE_X86_URL=
-UBUNTU_X64_URL=http://releases.ubuntu.com/15.10/ubuntu-15.10-desktop-amd64.iso
-UBUNTU_X86_URL=http://releases.ubuntu.com/15.10/ubuntu-15.10-desktop-i386.iso
-UBUNTU_LTS_X64_URL=http://releases.ubuntu.com/16.04.1/ubuntu-16.04.1-desktop-amd64.iso
-UBUNTU_LTS_X86_URL=http://releases.ubuntu.com/16.04.1/ubuntu-16.04.1-desktop-i386.iso
-UBUNTU_NONPAE_URL=ftp://ftp.heise.de/pub/ct/projekte/ubuntu-nonpae/ubuntu-12.04.4-nonpae.iso
-DEBIAN_X64_URL=http://cdimage.debian.org/debian-cd/8.5.0-live/amd64/iso-hybrid/debian-live-8.5.0-amd64-lxde-desktop.iso
-DEBIAN_X86_URL=http://cdimage.debian.org/debian-cd/8.5.0-live/i386/iso-hybrid/debian-live-8.5.0-i386-lxde-desktop.iso
-GNURADIO_X64_URL=http://s3-dist.gnuradio.org/ubuntu-14.04.4-desktop-amd64-gnuradio-3.7.10.iso
-DEFT_X64_URL=http://na.mirror.garr.it/mirrors/deft/deft-8.2.iso
-KALI_X64_URL=http://cdimage.kali.org/kali-2016.1/kali-linux-2016.1-amd64.iso
-PENTOO_X64_URL=ftp://mirror.switch.ch/mirror/pentoo/Pentoo_amd64_default/pentoo-amd64-default-2015.0_RC4.6.iso
-SYSTEMRESCTUE_X86_URL=http://downloads.sourceforge.net/project/systemrescuecd/sysresccd-x86/4.8.0/systemrescuecd-x86-4.8.0.iso
-BANKIX_X86_URL=ftp://ftp.heise.de/pub/ct/projekte/ctbankix/12.04/ctbankix-12.04.7.iso
-DESINFECT_X86_URL=
 
-WIN_PE_X86=win-pe-x86
-UBUNTU_X64=ubuntu-x64
-UBUNTU_X86=ubuntu-x86
-UBUNTU_LTS_X64=ubuntu-lts-x64
-UBUNTU_LTS_X86=ubuntu-lts-x86
-UBUNTU_NONPAE=ubuntu-nopae
-DEBIAN_X64=debian-x64
-DEBIAN_X86=debian-x86
-GNURADIO_X64=gnuradio-x64
-DEFT_X64=deft-x64
-KALI_X64=kali-x64
-PENTOO_X64=pentoo-x64
-SYSTEMRESCTUE_X86=systemrescue-x86
-BANKIX_X86=bankix-x86
-DESINFECT_X86=desinfect-x86
+UBCD_URL=http://mirror.sysadminguide.net/ubcd/ubcd536.iso
+
+UBCD=ubcd
 
 
 ######################################################################
@@ -175,21 +136,8 @@ grep -q max_loop /boot/cmdline.txt 2> /dev/null || {
 	sudo sed -i '1 s/$/ max_loop=64/' /boot/cmdline.txt;
 }
 ######################################################################
-handle_iso  $WIN_PE_X86        $WIN_PE_X86_URL;
-handle_iso  $UBUNTU_X64        $UBUNTU_X64_URL;
-handle_iso  $UBUNTU_X86        $UBUNTU_X86_URL;
-handle_iso  $UBUNTU_LTS_X64    $UBUNTU_LTS_X64_URL;
-handle_iso  $UBUNTU_LTS_X86    $UBUNTU_LTS_X86_URL;
-handle_iso  $UBUNTU_NONPAE     $UBUNTU_NONPAE_URL;
-handle_iso  $DEBIAN_X64        $DEBIAN_X64_URL;
-handle_iso  $DEBIAN_X86        $DEBIAN_X86_URL;
-handle_iso  $GNURADIO_X64      $GNURADIO_X64_URL;
-handle_iso  $DEFT_X64          $DEFT_X64_URL;
-handle_iso  $KALI_X64          $KALI_X64_URL;
-handle_iso  $PENTOO_X64        $PENTOO_X64_URL;
-handle_iso  $SYSTEMRESCTUE_X86 $SYSTEMRESCTUE_X86_URL;
-handle_iso  $BANKIX_X86        $BANKIX_X86_URL;
-handle_iso  $DESINFECT_X86     $DESINFECT_X86_URL;
+handle_iso  $UBCD        $UBCD_URL;
+
 ######################################################################
 echo -e "\e[32menable port mapping and necessary services\e[0m";
 sudo service nfs-common stop
@@ -307,10 +255,10 @@ LABEL Ubuntu x86
 
 ' >> $DST_ROOT/pxelinux.cfg/default"
 
-[ -f "$DST_ROOT/pxelinux.cfg/default" ] && [ -f "$DST_NFS/$UBUNTU_LTS_X64/casper/vmlinuz.efi" ] && sudo sh -c "echo '########################################
-LABEL Ubuntu LTS x64
-    KERNEL $NFS/$UBUNTU_LTS_X64/casper/vmlinuz.efi
-    APPEND initrd=$NFS/$UBUNTU_LTS_X64/casper/initrd.lz  netboot=nfs  nfsroot=$IP_LOCAL:$DST_NFS/$UBUNTU_LTS_X64  file=/cdrom/preseed/ubuntu.seed  boot=casper  --  debian-installer/language=de  console-setup/layoutcode?=de  locale=de_DE
+[ -f "$DST_ROOT/pxelinux.cfg/default" ] && [ -f "$DST_NFS/$UBCD/pmagic/bzImage" ] && sudo sh -c "echo '########################################
+LABEL UBCD
+    KERNEL $NFS/$UBCD/pmagic/bzImage
+    APPEND initrd=$NFS/$UBCD/pmagic/bzImage  netboot=nfs  nfsroot=$IP_LOCAL:$DST_NFS/$UBCD
     TEXT HELP
         Boot to Ubuntu LTS x64 Live
         k:de, l:de/en
